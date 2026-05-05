@@ -1,90 +1,98 @@
 let products = [];
 let cart = [];
 
+const productsEl = document.getElementById("products");
+const cartItems = document.getElementById("cart-items");
+const total = document.getElementById("total");
+
+// 🌍 ЯЗЫКИ
+const langs = {
+  ru: { title: "Магазин" },
+  en: { title: "Shop" },
+  zh: { title: "商店" }
+};
+
+function setLang(l) {
+  document.getElementById("title").innerText = langs[l].title;
+}
+
+// 👤 РЕГИСТРАЦИЯ
+function register() {
+  const u = username.value;
+  const p = password.value;
+  localStorage.setItem("user", JSON.stringify({ u, p }));
+  alert("Зарегистрирован");
+}
+
+function login() {
+  const u = username.value;
+  const p = password.value;
+  const data = JSON.parse(localStorage.getItem("user"));
+  if (data && data.u === u && data.p === p) {
+    alert("Вход успешен");
+  } else {
+    alert("Ошибка");
+  }
+}
+
+// 📦 ТОВАРЫ
 function addProduct() {
   const name = document.getElementById("name").value;
   const desc = document.getElementById("desc").value;
   const price = Number(document.getElementById("price").value);
-  const imageInput = document.getElementById("image");
-  const file = imageInput.files[0];
+  const file = document.getElementById("image").files[0];
 
   if (!name || !desc || !price || !file) {
-    alert("Заполни все поля");
+    alert("Заполни всё");
     return;
   }
 
   const reader = new FileReader();
-
-  reader.onload = function(e) {
-    const product = {
+  reader.onload = function (e) {
+    products.push({
       id: Date.now(),
       name,
       desc,
       price,
       image: e.target.result
-    };
-
-    products.push(product);
+    });
     renderProducts();
-
-    document.getElementById("name").value = "";
-    document.getElementById("desc").value = "";
-    document.getElementById("price").value = "";
-    imageInput.value = "";
   };
-
   reader.readAsDataURL(file);
 }
 
 function renderProducts() {
-  const container = document.getElementById("products");
-  container.innerHTML = "";
-
+  productsEl.innerHTML = "";
   products.forEach(p => {
-    container.innerHTML += `
+    productsEl.innerHTML += `
       <div class="product">
         <img src="${p.image}">
         <h3>${p.name}</h3>
         <p>${p.desc}</p>
-        <p>${p.price}₽</p>
-        <button onclick="addToCart(${p.id})">Купить</button>
-        <button class="delete-btn" onclick="deleteProduct(${p.id})">Удалить</button>
+        <p>${p.price}</p>
+        <button onclick="addToCart(${p.id})">+</button>
       </div>
     `;
   });
 }
 
-function deleteProduct(id) {
-  products = products.filter(p => p.id !== id);
-  renderProducts();
-}
-
+// 🛒 КОРЗИНА
 function addToCart(id) {
-  const product = products.find(p => p.id === id);
-  cart.push(product);
+  cart.push(products.find(p => p.id === id));
   renderCart();
 }
 
 function renderCart() {
-  const list = document.getElementById("cart-items");
-  list.innerHTML = "";
-  let total = 0;
-
-  cart.forEach(item => {
-    total += item.price;
-    list.innerHTML += `<li>${item.name} - ${item.price}₽</li>`;
+  cartItems.innerHTML = "";
+  let sum = 0;
+  cart.forEach(i => {
+    sum += i.price;
+    cartItems.innerHTML += `<li>${i.name}</li>`;
   });
-
-  document.getElementById("total").innerText = total;
+  total.innerText = sum;
 }
 
+// 💳 ОПЛАТА
 function checkout() {
-  if (cart.length === 0) {
-    alert("Корзина пуста!");
-    return;
-  }
-
-  alert("Покупка оформлена!");
-  cart = [];
-  renderCart();
+  alert("Для реальной оплаты нужен сервер (Stripe/PayPal)");
 }
